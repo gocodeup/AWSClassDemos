@@ -1,6 +1,7 @@
 #!/bin/bash
 yum update -y
-yum install python3 docker -y
+yum install python3 -y
+amazon-linux-extras install docker -y
 service docker start
 chkconfig docker on
 docker pull kennethreitz/httpbin
