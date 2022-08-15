@@ -9,7 +9,7 @@ SSM_CLIENT = boto3.client('ssm', region_name=AWS_REGION)
 KEY_PAIR_NAME = f'AWSClassDemo-{secrets.token_hex(4)}'
 KEY_PAIR = EC2_RESOURCE.create_key_pair(KeyName=KEY_PAIR_NAME, KeyType='ed25519', KeyFormat='pem')
 AMI_ID = SSM_CLIENT.get_parameter(Name='/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2')['Parameter']['Value']
-SECURITY_GROUP = list(EC2_RESOURCE.security_groups.filter(Filters=[{'Name': 'group-name', 'Values':['default']}]))[0]
+SECURITY_GROUP = EC2_RESOURCE.create_security_group(Description='SDK Class Demo', GroupName=f'SDKClassDemo-{secrets.token_hex(4)}')
 SECURITY_GROUP_ID = SECURITY_GROUP.id
 
 # more info on create_instances: https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
@@ -46,4 +46,5 @@ for instance in instances:
     instance.terminate()
     print(f'Waiting for instance {instance.id} to terminate')
     instance.wait_until_terminated()
+SECURITY_GROUP.delete()
 
