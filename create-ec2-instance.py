@@ -10,6 +10,8 @@ KEY_PAIR_NAME = f'AWSClassDemo-{secrets.token_hex(4)}'
 KEY_PAIR = EC2_RESOURCE.create_key_pair(KeyName=KEY_PAIR_NAME, KeyType='ed25519', KeyFormat='pem')
 AMI_ID = SSM_CLIENT.get_parameter(Name='/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2')['Parameter']['Value']
 SECURITY_GROUP = EC2_RESOURCE.create_security_group(Description='SDK Class Demo', GroupName=f'SDKClassDemo-{secrets.token_hex(4)}')
+SECURITY_GROUP.authorize_ingress(CidrIp='0.0.0.0/0', FromPort=80, IpProtocol='tcp', ToPort=80)
+SECURITY_GROUP.authorize_ingress(CidrIp='0.0.0.0/0', FromPort=22, IpProtocol='tcp', ToPort=22)
 SECURITY_GROUP_ID = SECURITY_GROUP.id
 
 # more info on create_instances: https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
