@@ -6,7 +6,7 @@ import secrets
 AWS_REGION = "us-east-1"
 EC2_RESOURCE = boto3.resource('ec2', region_name=AWS_REGION)
 SSM_CLIENT = boto3.client('ssm', region_name=AWS_REGION)
-KEY_PAIR_NAME = f'AWSClassDemo-{secrets.token_hex(4)}'
+KEY_PAIR_NAME = f'SDKClassDemo-{secrets.token_hex(4)}'
 KEY_PAIR = EC2_RESOURCE.create_key_pair(KeyName=KEY_PAIR_NAME, KeyType='ed25519', KeyFormat='pem')
 AMI_ID = SSM_CLIENT.get_parameter(Name='/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2')['Parameter']['Value']
 SECURITY_GROUP = EC2_RESOURCE.create_security_group(Description='SDK Class Demo', GroupName=f'SDKClassDemo-{secrets.token_hex(4)}')
