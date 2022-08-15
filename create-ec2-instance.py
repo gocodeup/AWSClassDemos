@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 
 import boto3
+import secrets
 
-AWS_REGION = "us-east-2"
+AWS_REGION = "us-east-1"
 EC2_RESOURCE = boto3.resource('ec2', region_name=AWS_REGION)
-KEY_PAIR_NAME = 'AWSClassDemo'
-AMI_ID = 'ami-0f19d220602031aed' # Amazon Linux 2 - HVM - SSD - x86_64
-SECURITY_GROUP = 'sg-020a716b47696a32f'
+SSM_CLIENT = boto3.client('ssm', region_name=AWS_REGION)
+KEY_PAIR_NAME = f'AWSClassDemo-{secrets.token_hex(4)}'
+KEY_PAIR = EC2_RESOURCE.create_key_pair(KeyName=KEY_PAIR_NAME, KeyType='ed25519', KeyFormat='pem')
+AMI_ID = SSM_CLIENT.get_parameter(Name='/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2')['Parameter']['Value']
+SECURITY_GROUP = list(EC2_RESOURCE.security_groups.filter(Filters=[{'Name': 'group-name', 'Values':['default']}]))[0]
+SECURITY_GROUP_ID = SECURITY_GROUP.id
 
 # more info on create_instances: https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2.html#EC2.ServiceResource.create_instances
 instances = EC2_RESOURCE.create_instances(
@@ -16,7 +20,7 @@ instances = EC2_RESOURCE.create_instances(
     InstanceType='t3.micro',  # x86_64
     KeyName=KEY_PAIR_NAME,
     UserData=open('http-bin-userdata-example.sh', 'r').read(),
-    SecurityGroupIds=[SECURITY_GROUP],
+    SecurityGroupIds=[SECURITY_GROUP_ID],
     TagSpecifications=[
         {
             'ResourceType': 'instance',
@@ -35,3 +39,11 @@ for instance in instances:
     
     instance.wait_until_running()
     print(f'EC2 instance "{instance.id}" has been started')
+    
+input('press enter to delete the newly created resources')
+KEY_PAIR.delete()
+for instance in instances:
+    instance.terminate()
+    print(f'Waiting for instance {instance.id} to terminate')
+    instance.wait_until_terminated()
+
